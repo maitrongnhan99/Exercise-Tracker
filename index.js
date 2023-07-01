@@ -20,8 +20,13 @@ app.get('/', (req, res) => {
 
 app.post('/api/users', async (req, res) => {
     console.log(req.body)
-    const user = await resolvers.Mutation.createUser(req.body.username)
-    res.json(user)
+    const user = await resolvers.Mutation.createUser(req,  {
+        username: req.body.username,
+    })
+    res.json({
+        username: user.username,
+        _id: user._id,
+    })
 })
 
 app.get('/api/users/:id', async (req, res) => {
@@ -29,7 +34,6 @@ app.get('/api/users/:id', async (req, res) => {
         id: req.params.id,
     })
 
-    // console.log(user)
     res.json(user)
 })
 
@@ -62,8 +66,7 @@ app.listen({ port: process.env.PORT || 3000 }, () =>
     console.log(`🚀 Server ready at http://localhost:3000`)
 )
 
-const MONGODB_CONNECTION_STRING =
-    process.env.MONGODB_CONNECTION_STRING || 'mongodb://localhost:27017/'
+const MONGODB_CONNECTION_STRING = "mongodb+srv://admin:admin@root.lroip8g.mongodb.net/?retryWrites=true&w=majority"
 const server = new ApolloServer({ typeDefs, resolvers })
 server.start().then(() => {
     server.applyMiddleware({ app })

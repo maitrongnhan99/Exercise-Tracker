@@ -3,8 +3,8 @@ const ExercisesModel = require('../models/ExercisesModel')
 
 const resolvers = {
     Query: {
-        user: async (_, { username, id }) => {
-            return UserModel.findOne({ $or: [{ username }, { _id: id }] })
+        user: async (_, { id }) => {
+            return UserModel.findOne({ _id: id })
         },
         exercises: async (_, { userId }) => {
             return ExercisesModel.find({ user: userId }).populate('user')
