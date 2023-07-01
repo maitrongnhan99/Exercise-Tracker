@@ -10,7 +10,9 @@ const resolvers = {
             return ExercisesModel.find({ user: userId }).populate('user')
         },
         getLogs: async (_, { userId, from, to, limit = 0 }) => {
-            const user = await UserModel.findOne({ _id: userId })
+            const user = await UserModel.findOne({
+                _id: userId,
+            })
 
             const query = {
                 user: userId,
@@ -23,16 +25,28 @@ const resolvers = {
                 query.date = { ...query.date, $lte: to }
             }
 
-            console.log(query)
-
-            const exercises = await ExercisesModel.find(query).limit(limit)
+            const exercises = await ExercisesModel.find(query, {
+                _id: 0,
+                description: 1,
+                duration: 1,
+                date: 1,
+            }).limit(limit)
 
             return {
-                _id: user._id,
+                _id: user.id,
                 username: user.username,
                 count: exercises.length,
-                log: exercises,
+                log: exercises.map((exercise) => {
+                    return {
+                        description: exercise.description,
+                        duration: exercise.duration,
+                        date: new Date(exercise.date ?? new Date()).toDateString(),
+                    }
+                }),
             }
+        },
+        users: async () => {
+            return UserModel.find({})
         },
     },
     Mutation: {
@@ -48,11 +62,7 @@ const resolvers = {
             })
         },
     },
-    // Exercise: {
-    //     user: (parent) => {
-    //         return UserModel.findById(parent.userId)
-    //     },
-    // },
+
 }
 
 module.exports = resolvers

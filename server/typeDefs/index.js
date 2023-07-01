@@ -28,6 +28,7 @@ const typeDefs = gql`
 
     type Query {
         user(username: String, id: ID): User!
+				users: [User!]!
         exercises(userId: String!): [Exercise!]!
         getLogs(userId: String!, from: String, to: String, limit: Int): UserLog!
     }

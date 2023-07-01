@@ -19,7 +19,6 @@ app.get('/', (req, res) => {
 })
 
 app.post('/api/users', async (req, res) => {
-    console.log(req.body)
     const user = await resolvers.Mutation.createUser(req,  {
         username: req.body.username,
     })
@@ -35,6 +34,12 @@ app.get('/api/users/:id', async (req, res) => {
     })
 
     res.json(user)
+})
+
+app.get('/api/users', async (req, res) => {
+    const users = await resolvers.Query.users()
+
+    res.json(users)
 })
 
 app.post('/api/users/:_id/exercises', async (req, res) => {
@@ -59,7 +64,14 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 })
 
 app.get('/api/users/:_id/logs', async (req, res) => {
-    console.log(req.params)
+    const logs = await resolvers.Query.getLogs(req, {
+        userId: req.params._id,
+        from: req.query.from,
+        to: req.query.to,
+        limit: req.query.limit,
+    })
+
+    res.json(logs)
 })
 
 app.listen({ port: process.env.PORT || 3000 }, () =>
