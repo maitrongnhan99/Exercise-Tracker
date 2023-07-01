@@ -1,18 +1,78 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const { ApolloServer } = require('apollo-server-express')
+const typeDefs = require('./server/typeDefs')
+const resolvers = require('./server/resolvers')
+const mongoose = require('mongoose')
+
 require('dotenv').config()
+
+const bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
 app.use(cors())
 app.use(express.static('public'))
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/index.html')
-});
+    res.sendFile(__dirname + '/views/index.html')
+})
 
+app.post('/api/users', async (req, res) => {
+    console.log(req.body)
+    const user = await resolvers.Mutation.createUser(req.body.username)
+    res.json(user)
+})
 
+app.get('/api/users/:id', async (req, res) => {
+    const user = await resolvers.Query.user(req, {
+        id: req.params.id,
+    })
 
+    // console.log(user)
+    res.json(user)
+})
 
+app.post('/api/users/:_id/exercises', async (req, res) => {
+    const exercise = await resolvers.Mutation.createExercise(req, {
+        user: req.params._id,
+        description: req.body.description,
+        duration: req.body.duration,
+        date: req.body.date,
+    })
 
-const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port)
+    const user = await resolvers.Query.user(req, {
+        id: req.params._id,
+    })
+
+    res.json({
+        _id: user._id,
+        username: user.username,
+        description: exercise.description,
+        duration: exercise.duration,
+        date: new Date(exercise.date).toDateString(),
+    })
+})
+
+app.get('/api/users/:_id/logs', async (req, res) => {
+    console.log(req.params)
+})
+
+app.listen({ port: process.env.PORT || 3000 }, () =>
+    console.log(`🚀 Server ready at http://localhost:3000`)
+)
+
+const MONGODB_CONNECTION_STRING =
+    process.env.MONGODB_CONNECTION_STRING || 'mongodb://localhost:27017/'
+const server = new ApolloServer({ typeDefs, resolvers })
+server.start().then(() => {
+    server.applyMiddleware({ app })
+
+    mongoose
+        .connect(MONGODB_CONNECTION_STRING, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        })
+        .then(() => console.log(`🚀 Database connected`))
+        .catch((err) => console.log(err))
 })
